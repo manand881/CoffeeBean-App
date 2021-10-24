@@ -9,6 +9,7 @@ GET_BEST_PREPARATION_FOR_BEAN = 'SELECT * FROM beans WHERE name = ? ORDER BY rat
 GET_WORST_PREPARATION_FOR_BEAN = 'SELECT * FROM beans WHERE name = ? ORDER BY rating ASC LIMIT 1'
 GET_COLUMN_NAMES = 'PRAGMA table_info(beans);'
 GET_ALL_PREPARATION_METHODS = 'SELECT method FROM beans GROUP BY method'
+CHECK_IF_ROW_EXISTS = 'SELECT * FROM beans WHERE name = ? AND method = ? AND rating = ?'
 
 
 def connect():
@@ -49,9 +50,47 @@ def get_column_names(connection):
     with connection:
         column_info = connection.execute(GET_COLUMN_NAMES).fetchall()
         columns = [entity[1] for entity in column_info]
-        del columns[0]
         return columns
+
 
 def get_all_preparation_methods(connection):
     with connection:
         return connection.execute(GET_ALL_PREPARATION_METHODS).fetchall()
+
+
+def write_csv_header(connection):
+    with open('data.csv', 'w+') as file:
+        file.write(','.join(get_column_names(connection)) + '\n')
+    file.close()
+
+
+def export_database_to_csv(connection):
+    with connection:
+        all_data = connection.execute(GET_ALL_BEANS).fetchall()
+        write_csv_header(connection)
+        with open('data.csv', 'a') as file:
+            for row in all_data:
+                file.write(','.join(str(value) for value in row) + '\n')
+        file.close()
+
+
+def check_if_row_exists(connection, name, method, rating):
+    with connection:
+        return connection.execute(CHECK_IF_ROW_EXISTS,
+                                  (name, method, rating)).fetchone()
+
+
+def import_database_from_csv(connection):
+    new_additions = 0
+    with connection:
+        with open('data.csv', 'r') as file:
+            lines = file.readlines()
+            del lines[0]
+            for line in lines:
+                line = line.strip().split(',')
+                if(check_if_row_exists(connection, line[1], line[2], line[3]) == None):
+                    add_bean(connection, line[1], line[2], line[3])
+                    new_additions += 1
+        file.close()
+    write_csv_header(connection)
+    return new_additions
