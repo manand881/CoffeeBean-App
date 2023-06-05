@@ -18,31 +18,31 @@ def menu():
 
         elif user_input == '2':
             # View all coffee beans
-            view_all_coffee_beans
+            view_all_coffee_beans()
 
         elif user_input == '3':
             # Find a coffee bean by name
-            find_coffee_bean_by_name
+            find_coffee_bean_by_name()
 
         elif user_input == '4':
             # See which preparation method is best for a coffee bean
-            best_preperation_method
+            best_preperation_method()
 
         elif user_input == '5':
             # See which preparation method is worst for a coffee bean
-            worst_preperation_method
+            worst_preperation_method()
 
         elif user_input == '6':
             # Get All Preperation Methods
-            get_all_preperation_methods
+            get_all_preperation_methods()
 
         elif user_input == '7':
             # Export operations to CSV
-            export_csv
+            export_csv()
 
         elif user_input == '8':
             # Import Database from CSV
-            import_csv
+            import_csv()
 
         elif user_input == '9':
             # Restart Application
