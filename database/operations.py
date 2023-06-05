@@ -1,19 +1,16 @@
 import sqlite3
 
-
-CREATE_BEANS_TABLE = 'CREATE TABLE IF NOT EXISTS beans (id INTEGER PRIMARY KEY, name TEXT, method TEXT, Rating Integer);'
-INSERT_BEAN = 'INSERT INTO beans (name,method,rating) VALUES (?, ?, ?);'
-GET_ALL_BEANS = 'SELECT * FROM beans'
-GET_BEANS_BY_NAME = 'SELECT * FROM beans WHERE name = ?'
-GET_BEST_PREPARATION_FOR_BEAN = 'SELECT * FROM beans WHERE name = ? ORDER BY rating DESC LIMIT 1'
-GET_WORST_PREPARATION_FOR_BEAN = 'SELECT * FROM beans WHERE name = ? ORDER BY rating ASC LIMIT 1'
-GET_COLUMN_NAMES = 'PRAGMA table_info(beans);'
-GET_ALL_PREPARATION_METHODS = 'SELECT method FROM beans GROUP BY method'
-CHECK_IF_ROW_EXISTS = 'SELECT * FROM beans WHERE name = ? AND method = ? AND rating = ?'
+from constants.database_queries import (CHECK_IF_ROW_EXISTS,
+                                        CREATE_BEANS_TABLE, GET_ALL_BEANS,
+                                        GET_ALL_PREPARATION_METHODS,
+                                        GET_BEANS_BY_NAME,
+                                        GET_BEST_PREPARATION_FOR_BEAN,
+                                        GET_COLUMN_NAMES, INSERT_BEAN)
+from constants.globals import db_path, export_csv_path
 
 
 def connect():
-    return sqlite3.connect('data.db')
+    return sqlite3.connect(db_path)
 
 
 def create_tables(connection):
@@ -59,7 +56,7 @@ def get_all_preparation_methods(connection):
 
 
 def write_csv_header(connection):
-    with open('data.csv', 'w+') as file:
+    with open(export_csv_path, 'w+') as file:
         file.write(','.join(get_column_names(connection)) + '\n')
     file.close()
 
@@ -68,7 +65,7 @@ def export_database_to_csv(connection):
     with connection:
         all_data = connection.execute(GET_ALL_BEANS).fetchall()
         write_csv_header(connection)
-        with open('data.csv', 'a') as file:
+        with open(export_csv_path, 'a') as file:
             for row in all_data:
                 file.write(','.join(str(value) for value in row) + '\n')
         file.close()
@@ -88,7 +85,7 @@ def import_database_from_csv(connection):
             del lines[0]
             for line in lines:
                 line = line.strip().split(',')
-                if(check_if_row_exists(connection, line[1], line[2], line[3]) == None):
+                if (check_if_row_exists(connection, line[1], line[2], line[3]) == None):
                     add_bean(connection, line[1], line[2], line[3])
                     new_additions += 1
         file.close()
