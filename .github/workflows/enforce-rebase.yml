@@ -1,0 +1,29 @@
+name: Enforce Rebase
+
+on:
+  pull_request:
+    types:
+      - synchronize
+      - opened
+      - reopened
+
+jobs:
+  enforce-rebase:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Fetch latest master branch
+        run: git fetch origin master
+
+      - name: Check for rebase
+        run: |
+          BASE_BRANCH=master
+          BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          git diff --name-only $BASE_BRANCH..$BRANCH > changes.txt
+          if [ -s changes.txt ]; then
+            echo "Error: The branch has not been rebased with the latest $BASE_BRANCH branch. Please rebase your branch before merging."
+            exit 1
+          fi
